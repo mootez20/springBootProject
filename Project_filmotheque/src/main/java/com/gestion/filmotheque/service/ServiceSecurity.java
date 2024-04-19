@@ -43,24 +43,29 @@ public class ServiceSecurity implements IServiceSecurity {
         return appUserRepository.save(a);
     }
 
-   @PostConstruct
+    @PostConstruct
     public void createAppDefault() {
-       AppRole role = appRoleRepository.findByRolename("ADMIN");
-       if(role == null){
-           role = new AppRole("ADMIN");
-           appRoleRepository.save(role);
-       }
-       AppUser newUser = appUserRepository.findByUsername("admin");
-       if(newUser != null){
-           newUser.addRoles(role);
-       }else{
-           newUser.setUsername("admin");
+        // Check if the ADMIN role exists, if not, create it
+        AppRole role = appRoleRepository.findByRolename("ADMIN");
+        if (role == null) {
+            role = new AppRole("ADMIN");
+            appRoleRepository.save(role);
+        }
 
-           newUser.addRoles(role);
-           BCryptPasswordEncoder bcp = new BCryptPasswordEncoder();
-           newUser.setPassword(bcp.encode("admin"));
-       }
+        // Check if the admin user exists
+        AppUser newUser = appUserRepository.findByUsername("admin");
+        if (newUser == null) {
+            // If the user doesn't exist, create a new one
+            newUser = new AppUser();
+            newUser.setUsername("admin");
+            BCryptPasswordEncoder bcp = new BCryptPasswordEncoder();
+            newUser.setPassword(bcp.encode("admin"));
+        }
 
+        // Add the ADMIN role to the user
+        newUser.addRoles(role);
+
+        // Save the user
         appUserRepository.save(newUser);
     }
 
